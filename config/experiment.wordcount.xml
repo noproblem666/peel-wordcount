@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--************************************************************************
+    * Data Sets
+    *************************************************************************-->
+
+    <bean id="dataset.hamlet" class="org.peelframework.core.beans.data.CopiedDataSet">
+        <constructor-arg name="src" value="${app.path.datasets}/hamlet.txt"/>
+        <constructor-arg name="dst" value="${system.hadoop-2.path.input}/hamlet.txt"/>
+        <constructor-arg name="fs" ref="hdfs-2.7.1"/>
+    </bean>
+
+    <!--************************************************************************
+    * Experiments
+    *************************************************************************-->
+
+    <!-- k-means output -->
+    <bean id="wordcount.output" class="org.peelframework.core.beans.data.ExperimentOutput">
+        <constructor-arg name="path" value="${system.hadoop-2.path.output}/wordcount"/>
+        <constructor-arg name="fs" ref="hdfs-2.7.1"/>
+    </bean>
+
+    <!--************************************************************************
+    * Suites
+    *************************************************************************-->
+
+    <!-- suite for local development and testing -->
+    <bean id="wordcount.default" class="org.peelframework.core.beans.experiment.ExperimentSuite">
+        <constructor-arg name="experiments">
+            <list value-type="org.peelframework.core.beans.experiment.Experiment">
+                <bean id="experiment.flink.wordcount" class="org.peelframework.flink.beans.experiment.FlinkExperiment">
+                    <constructor-arg name="name" value="wordcount.flink"/>
+                    <constructor-arg name="runs" value="3"/>
+                    <constructor-arg name="command">
+                        <value><![CDATA[
+                          -v -c org.peelframework.wordcount.flink.FlinkWC   \
+                          ${app.path.apps}/peel-wordcount-flink-jobs-1.0-SNAPSHOT.jar \
+                          ${system.hadoop-2.path.input}/hamlet.txt                                  \
+                          ${system.hadoop-2.path.output}/wordcount
+                        ]]></value>
+                    </constructor-arg>
+                    <constructor-arg name="config" value=" "/>
+                    <constructor-arg name="runner" ref="flink-0.10.2"/>
+                    <constructor-arg name="inputs">
+                        <set value-type="org.peelframework.core.beans.data.DataSet">
+                            <ref bean="dataset.hamlet" />
+                        </set>
+                    </constructor-arg>
+                    <constructor-arg name="outputs">
+                        <set value-type="org.peelframework.core.beans.data.ExperimentOutput">
+                            <ref bean="wordcount.output" />
+                        </set>
+                    </constructor-arg>
+                    <constructor-arg name="config" value=""/>
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+</beans>

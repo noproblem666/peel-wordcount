@@ -1,0 +1,6 @@
+*.txt
+*.log
+*.log.*
+*.out
+*.err
+*.in

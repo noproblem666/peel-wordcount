@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--************************************************************************
+    * Data Generators
+    *************************************************************************-->
+
+    <bean id="datagen.words" class="org.peelframework.flink.beans.job.FlinkJob">
+        <constructor-arg name="runner" ref="flink-0.9.0"/>
+        <constructor-arg name="command">
+            <value><![CDATA[
+              -v -c com.acme.benchmarks.wordcount.datagen.flink.WordGenerator        \
+              ${app.path.datagens}/peel-wordcount-datagens-1.0-SNAPSHOT.jar        \
+              ${system.default.config.parallelism.total}                           \
+              ${datagen.tuples.per.task}                                           \
+              ${datagen.dictionary.dize}                                           \
+              ${datagen.data-distribution}                                         \
+              ${system.hadoop-2.path.input}/hamlet.txt
+            ]]>
+            </value>
+        </constructor-arg>
+    </bean>
+
+    <!--************************************************************************
+    * Data Sets
+    *************************************************************************-->
+
+    <bean id="dataset.words.static" class="org.peelframework.core.beans.data.CopiedDataSet">
+        <constructor-arg name="src" value="${app.path.datasets}/hamlet.txt"/>
+        <constructor-arg name="dst" value="${system.hadoop-2.path.input}/hamlet.txt"/>
+        <constructor-arg name="fs" ref="hdfs-2.7.1"/>
+    </bean>
+
+    <bean id="dataset.words.generated" class="org.peelframework.core.beans.data.GeneratedDataSet">
+        <constructor-arg name="src" ref="datagen.words"/>
+        <constructor-arg name="dst" value="${system.hadoop-2.path.input}/hamlet.txt"/>
+        <constructor-arg name="fs" ref="hdfs-2.7.1"/>
+    </bean>
+
+    <!--************************************************************************
+    * Experiments
+    *************************************************************************-->
+
+    <!-- Wordcount output -->
+    <bean id="wordcount.output" class="org.peelframework.core.beans.data.ExperimentOutput">
+        <constructor-arg name="path" value="${system.hadoop-2.path.output}/wordcount"/>
+        <constructor-arg name="fs" ref="hdfs-2.7.1"/>
+    </bean>
+
+    <!-- wordcount experiment with fixed dataset (flink) -->
+    <bean id="experiment.flink.wordcount" parent="experiment.flink-0.9.0" abstract="true">
+        <constructor-arg name="command">
+            <value><![CDATA[
+              -v -c com.acme.benchmarks.wordcount.flink.FlinkWC                      \
+              ${app.path.apps}/peel-wordcount-flink-jobs-1.0-SNAPSHOT.jar          \
+              ${system.hadoop-2.path.input}/hamlet.txt                            \
+              ${system.hadoop-2.path.output}/wordcount
+            ]]></value>
+        </constructor-arg>
+        <constructor-arg name="outputs">
+            <set value-type="org.peelframework.core.beans.data.ExperimentOutput">
+                <ref bean="wordcount.output"/>
+            </set>
+        </constructor-arg>
+    </bean>
+
+    <!--************************************************************************
+    * Suites
+    *************************************************************************-->
+
+    <!-- suite for local development and testing -->
+    <bean id="wordcount.default" class="org.peelframework.core.beans.experiment.ExperimentSuite">
+        <constructor-arg name="experiments">
+            <list value-type="org.peelframework.core.beans.experiment.Experiment">
+                <bean parent="experiment.flink.wordcount">
+                    <constructor-arg name="name" value="wordcount.flink"/>
+                    <constructor-arg name="inputs">
+                        <set>
+                            <ref bean="dataset.words.static" />
+                        </set>
+                    </constructor-arg>
+                    <constructor-arg name="config" value=""/>
+                </bean>
+            </lisover all nodes>
+    </bean>
+
+    <!-- suite for scale-out over all nodes -->
+    <bean id="wordcount.scale-out" class="org.peelframework.core.beans.experiment.ExperimentSuite">
+        <constructor-arg name="experiments">
+            <bean class="org.peelframework.core.beans.experiment.ExperimentSequence">
+                <constructor-arg name="paramName" value="all"/>
+                <constructor-arg name="paramVals">
+                    <list>
+                        <value>all</value>
+                    </list>
+                </constructor-arg>
+                <constructor-arg name="prototypes">
+                    <list value-type="org.peelframework.core.beans.experiment.Experiment">
+                        <bean parent="experiment.flink.wordcount">
+                            <constructor-arg name="name" value="wordcount.flink.__all__"/>
+                            <constructor-arg name="inputs">
+                                <set>
+                                    <ref bean="dataset.words.generated" />
+                                </set>
+                            </constructor-arg>
+                            <constructor-arg name="config">
+                                <value><![CDATA[
+                                  system.default.config.slaves            = ${env.slaves.__all__.hosts}
+                                  system.default.config.parallelism.total = ${env.slaves.__all__.total.parallelism}
+                                  datagen.dictionary.dize                 = 10000
+                                  datagen.tuples.per.task                 = 10000000 # ~ 100 MB
+                                  datagen.data-distribution               = Uniform
+                                ]]></value>
+                            </constructor-arg>
+                        </bean>
+                    </list>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+</beans>
