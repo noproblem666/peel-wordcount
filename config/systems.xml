@@ -22,8 +22,8 @@
         <constructor-arg name="lifespan" value="EXPERIMENT"/>
         <constructor-arg name="dependencies">
             <set value-type="org.peelframework.core.beans.system.System">
-                <ref bean="yarn-2.7.1"/>
                 <ref bean="hdfs-2.7.1"/>
+                <ref bean="yarn-2.7.1"/>
             </set>
         </constructor-arg> 
     </bean>
