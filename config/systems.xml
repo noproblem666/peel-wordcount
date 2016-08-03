@@ -15,15 +15,15 @@
     * Overridden system beans
     *************************************************************************-->
 
-    <!-- Flink (overridden 'flink-0.10.2' bean that depends on 'hdfs-2.7.1') -->
-    <bean id="flink-0.10.2" class="org.peelframework.flink.beans.system.Flink" parent="system">
-        <constructor-arg name="version" value="0.10.2"/>
+    <!-- Flink -->
+    <bean id="flink-1.0.3" class="org.peelframework.flink.beans.system.Flink" parent="system">
+        <constructor-arg name="version" value="1.0.3"/>
         <constructor-arg name="configKey" value="flink" />
         <constructor-arg name="lifespan" value="EXPERIMENT"/>
         <constructor-arg name="dependencies">
             <set value-type="org.peelframework.core.beans.system.System">
-                <ref bean="yarn-2.7.1"/>
                 <ref bean="hdfs-2.7.1"/>
+<!--            <ref bean="yarn-2.7.1"/> -->
             </set>
         </constructor-arg> 
     </bean>
@@ -32,8 +32,8 @@
     * Base experiments beans
     *************************************************************************-->
 
-    <bean id="experiment.flink-0.10.2" class="org.peelframework.flink.beans.experiment.FlinkExperiment" abstract="true">
-        <constructor-arg name="runner" ref="flink-0.10.2"/>
+    <bean id="experiment.flink-1.0.3" class="org.peelframework.flink.beans.experiment.FlinkExperiment" abstract="true">
+        <constructor-arg name="runner" ref="flink-1.0.3"/>
         <constructor-arg name="runs" value="3"/>
 
     </bean>
