@@ -91,6 +91,7 @@
         <constructor-arg name="experiments">
             <bean class="org.peelframework.core.beans.experiment.ExperimentSequence">
                 <constructor-arg name="paramName" value="topXXX"/>
+                <constructor-arg name="runs" value="2"/>
                 <constructor-arg name="paramVals">
                     <list>
                         <value>top002</value>
