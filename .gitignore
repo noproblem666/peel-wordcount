@@ -6,3 +6,5 @@
 *.in
 *.scala
 *.old
+*.tar
++.tar.gz
