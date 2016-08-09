@@ -10,4 +10,5 @@
     <import resource="systems.xml"/>
     <!-- wordcount experiment beans -->
     <import resource="experiment.wordcount.xml"/>
+    <import resource="experiment.mergesort.xml"/>
 </beans>
