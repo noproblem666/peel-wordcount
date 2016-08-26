@@ -86,7 +86,7 @@
         </constructor-arg>
     </bean>
 
-    <!-- suite for scale-out on 1, 2, 4 and all node(s) -->
+    <!-- suite for scale-out on 1, 2, 3 and all node(s) -->
     <bean id="wordcount.scale-out" class="org.peelframework.core.beans.experiment.ExperimentSuite">
         <constructor-arg name="experiments">
             <bean class="org.peelframework.core.beans.experiment.ExperimentSequence">
@@ -95,7 +95,7 @@
                     <list>
                         <value>top001</value>
                         <value>top002</value>
-                        <value>top004</value>
+                        <value>top003</value>
                         <value>all</value>
                     </list>
                 </constructor-arg>
