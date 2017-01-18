@@ -10,3 +10,5 @@
 *.tar.gz
 *.tgz
 *.swp
+.DS_Store
+output

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"> 
+  
+    <!--************************************************************************
+    * Data Sets
+    *************************************************************************-->
+
+    <bean id="dataset.dummy" class="org.peelframework.core.beans.data.CopiedDataSet">
+        <constructor-arg name="src" value="${app.path.datasets}/dummy.txt"/>
+        <constructor-arg name="dst" value="${system.hadoop-2.path.input}/dummy.txt"/>
+        <constructor-arg name="fs" ref="hdfs-2.7.1"/>
+    </bean>
+
+    <!-- Mergesort output -->
+    <bean id="connectedcomponents.output" class="org.peelframework.core.beans.data.ExperimentOutput">
+        <constructor-arg name="path" value="${system.hadoop-2.path.output}/connectedcomponents"/>
+        <constructor-arg name="fs" ref="hdfs-2.7.1"/>
+    </bean>
+
+	<!-- Mergesort experiment (flink) -->
+    <bean id="experiment.flink.connectedcomponents" parent="experiment.flink-1.0.3" abstract="true">
+        <constructor-arg name="command">
+            <value><![CDATA[
+                -v -c org.apache.flink.examples.java.graph.ConnectedComponents \
+                ${app.path.apps}/ConnectedComponents.jar \
+                --output ${system.hadoop-2.path.output}/connectedcomponents \
+				--iterations 10
+            ]]></value>
+        </constructor-arg>
+        <constructor-arg name="outputs">
+            <set value-type="org.peelframework.core.beans.data.ExperimentOutput">
+                <ref bean="connectedcomponents.output"/>
+            </set>
+        </constructor-arg>
+    </bean>
+
+    <!--************************************************************************
+    * Suites
+    *************************************************************************-->
+	<!-- suite for local development and testing -->
+    <bean id="connectedcomponents.default" class="org.peelframework.core.beans.experiment.ExperimentSuite">
+        <constructor-arg name="experiments">
+            <list value-type="org.peelframework.core.beans.experiment.Experiment">
+                <bean parent="experiment.flink.connectedcomponents">
+                    <constructor-arg name="name" value="connectedcomponents.flink"/>
+                     <constructor-arg name="inputs">
+                        <set>
+                            <ref bean="dataset.dummy"/>
+                        </set>
+                    </constructor-arg>
+                    <constructor-arg name="config" value=""/>
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!-- suite for scale-out on 1, 2, 4 and all node(s) -->
+    <bean id="connectedcomponents.scale-out" class="org.peelframework.core.beans.experiment.ExperimentSuite">
+        <constructor-arg name="experiments">
+            <bean class="org.peelframework.core.beans.experiment.ExperimentSequence">
+                <constructor-arg name="paramName" value="topXXX"/>
+                <constructor-arg name="paramVals">
+                    <list>
+                        <value>top001</value>
+                        <value>top002</value>
+                        <value>top003</value>
+                        <value>all</value>
+                    </list>
+                </constructor-arg>
+                <constructor-arg name="prototypes">
+                    <list value-type="org.peelframework.core.beans.experiment.Experiment">
+                        <bean parent="experiment.flink.connectedcomponents">
+                            <constructor-arg name="name" value="connectedcomponents.flink.__topXXX__"/>
+                            <constructor-arg name="runs" value="2"/>
+                             <constructor-arg name="inputs">
+                               <set>
+                                    <ref bean="dataset.dummy" />
+                              </set>
+                           </constructor-arg>
+                           <constructor-arg name="config">
+								<value><![CDATA[
+									system.default.config.slaves = ${env.slaves.__topXXX__.hosts}
+									system.default.config.parallelism.total = ${env.slaves.__topXXX__.total.parallelism}
+								]]></value>
+							</constructor-arg>
+                        </bean>
+					</list>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+    </bean>
+</beans>

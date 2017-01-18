@@ -7,8 +7,11 @@
     <import resource="classpath:peel-extensions.xml"/>
 
     <!-- custom system beans -->
-    <import resource="systems.xml"/>
+    <import resource="experiments/systems.xml"/>
     <!-- wordcount experiment beans -->
-    <import resource="experiment.wordcount.xml"/> 
-    <import resource="experiment.mergesort.xml"/>
+    <import resource="experiments/wordcount.xml"/> 
+    <import resource="experiments/mergesort.xml"/>
+    <import resource="experiments/kmeans.xml"/>
+    <import resource="experiments/connectedcomponents.xml"/>
+    <import resource="experiments/pcap.xml"/>
 </beans>

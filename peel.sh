@@ -41,8 +41,8 @@ manglePathList() {
 # DEFAULT CONFIG VALUES
 ########################################################################################################################
 
-DEFAULT_JAVA_HOME="/usr/lib/jvm/java-8-oracle"          # Java home
-DEFAULT_JAVA_OPTS="" # Optional JVM parameters
+DEFAULT_JAVA_HOME="/usr/lib/jvm/java-8-oracle"      # Java home
+DEFAULT_JAVA_OPTS=""                                # Optional JVM parameters
 
 ########################################################################################################################
 # PATHS AND CONFIG
